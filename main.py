@@ -1,12 +1,12 @@
 from machine import Pin, reset
 from utime import sleep
 import dht
-import mqtt_setup
+import mqtt_manager
 import mqtt_setup_conf
 import json
-import wifi_setup
+import wifi_manager
 
-wifi_setup.connect_wifi()
+wifi_manager.connect_wifi()
 collect_data = False
 led = Pin("LED", Pin.OUT)
 
@@ -47,7 +47,7 @@ def ensure_mqtt_connection(client):
     client: The MQTT client instance.
     """
     if client is None:
-        client = mqtt.setup_mqtt()
+        client = mqtt_manager.setup_mqtt()
         if client is not None:
             client.set_callback(button_callback)
             # Subscribe to the control topic and convert it to bytes to be compatible with the MQTT library.
@@ -58,7 +58,7 @@ def ensure_mqtt_connection(client):
     return client
 
 
-client = mqtt.setup_mqtt()
+client = mqtt_manager.setup_mqtt()
 if client:
     client.set_callback(button_callback)
     client.subscribe(bytes(mqtt_setup_conf.control_topic, 'utf-8'))
@@ -77,11 +77,11 @@ while True:
         if collect_data:
             temperature_value = dht11_sensor.temperature()
             temp_message = json.dumps({"value": temperature_value})
-            mqtt.publish_mqtt(client, mqtt_setup_conf.temp_topic, temp_message)
+            mqtt_manager.publish_mqtt(client, mqtt_setup_conf.temp_topic, temp_message)
             
             humidity_value = dht11_sensor.humidity()
             humidity_message = json.dumps({"value": humidity_value})
-            mqtt.publish_mqtt(client, mqtt_setup_conf.humidity_topic, humidity_message)
+            mqtt_manager.publish_mqtt(client, mqtt_setup_conf.humidity_topic, humidity_message)
         
         # Sleep for 6 seconds before taking another measurement.
         sleep(6)  
